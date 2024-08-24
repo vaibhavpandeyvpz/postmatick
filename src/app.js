@@ -1,7 +1,5 @@
 const fastify = require("fastify");
 const S = require("fluent-json-schema");
-const fs = require("fs");
-const path = require("path");
 const removeMarkdown = require("remove-markdown");
 
 const auth = require("./lib/auth");
@@ -12,13 +10,6 @@ const config = require("./config");
 
 const app = fastify({
   logger: config.app.env === "development",
-});
-
-app.register(require("@fastify/secure-session"), {
-  cookieName: config.session.cookie,
-  key: fs.readFileSync(path.join(__dirname, "..", "session.key")),
-  expiry: config.session.expiration,
-  cookie: { path: "/" },
 });
 
 app.get("/", function handler(request, reply) {
