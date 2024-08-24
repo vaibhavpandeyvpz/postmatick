@@ -16,11 +16,22 @@ app.get("/", function handler(req, reply) {
   reply.html();
 });
 
-app.get("/status", function handler(req, reply) {
-  const token = req.session.get("linkedin_access_token");
-  reply.send({
-    logged: !!token ? "in" : "out",
-  });
+app.get("/login", async function handler(req, reply) {
+  const [url, state] = await auth.authorize();
+  req.session.set("openid_linkedin_state", state);
+  reply.redirect(url);
+});
+
+app.get("/login/callback", async function handler(req, reply) {
+  const state = req.session.get("openid_linkedin_state");
+  const token = await auth.finalize(req, state);
+  req.session.set("linkedin_access_token", token);
+  reply.redirect("/");
+});
+
+app.post("/logout", async function handler(req, reply) {
+  req.session.delete();
+  reply.send({ logged: "out" });
 });
 
 app.get("/me", async function handler(req, reply) {
@@ -55,6 +66,48 @@ app.get(
     reply.send({ articles });
   },
 );
+
+app.post(
+  "/post",
+  {
+    schema: {
+      body: S.object()
+        .prop("text", S.string().required())
+        .prop("media", S.string())
+        .prop("visibility", S.enum(["CONNECTIONS", "PUBLIC"]).required()),
+    },
+  },
+  async function handler(req, reply) {
+    const { access_token } = req.session.get("linkedin_access_token");
+    const userInfo = await auth.userInfo(access_token);
+    const { text, media, visibility } = req.body;
+    const { createdEntityId } = await linkedin.post(
+      access_token,
+      userInfo.sub,
+      text,
+      media,
+      visibility,
+    );
+    reply.send({ id: createdEntityId });
+  },
+);
+
+app.get("/status", function handler(req, reply) {
+  const token = req.session.get("linkedin_access_token");
+  reply.send({
+    logged: !!token ? "in" : "out",
+  });
+});
+
+app.post("/upload", async function handler(req, reply) {
+  const { access_token } = req.session.get("linkedin_access_token");
+  const userInfo = await auth.userInfo(access_token);
+  const result = await linkedin.upload(access_token, userInfo.sub);
+  reply.send({
+    id: result.image,
+    upload_url: result.uploadUrl,
+  });
+});
 
 app.post(
   "/write",
@@ -110,58 +163,5 @@ app.post(
     reply.send({ written: removeMarkdown(content), image });
   },
 );
-
-app.post(
-  "/post",
-  {
-    schema: {
-      body: S.object()
-        .prop("text", S.string().required())
-        .prop("media", S.string())
-        .prop("visibility", S.enum(["CONNECTIONS", "PUBLIC"]).required()),
-    },
-  },
-  async function handler(req, reply) {
-    const { access_token } = req.session.get("linkedin_access_token");
-    const userInfo = await auth.userInfo(access_token);
-    const { text, media, visibility } = req.body;
-    const { createdEntityId } = await linkedin.post(
-      access_token,
-      userInfo.sub,
-      text,
-      media,
-      visibility,
-    );
-    reply.send({ id: createdEntityId });
-  },
-);
-
-app.get("/login", async function handler(req, reply) {
-  const [url, state] = await auth.authorize();
-  req.session.set("openid_linkedin_state", state);
-  reply.redirect(url);
-});
-
-app.get("/login/callback", async function handler(req, reply) {
-  const state = req.session.get("openid_linkedin_state");
-  const token = await auth.finalize(req, state);
-  req.session.set("linkedin_access_token", token);
-  reply.send({ logged: "in" });
-});
-
-app.post("/logout", async function handler(req, reply) {
-  req.session.delete();
-  reply.send({ logged: "out" });
-});
-
-app.post("/upload", async function handler(req, reply) {
-  const { access_token } = req.session.get("linkedin_access_token");
-  const userInfo = await auth.userInfo(access_token);
-  const result = await linkedin.upload(access_token, userInfo.sub);
-  reply.send({
-    id: result.image,
-    upload_url: result.uploadUrl,
-  });
-});
 
 module.exports = app;

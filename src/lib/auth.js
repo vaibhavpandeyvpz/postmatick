@@ -1,10 +1,14 @@
 const { Issuer, generators } = require("openid-client");
 const config = require("../config");
 
-async function create() {
-  const linkedin = await Issuer.discover("https://www.linkedin.com/oauth");
+let issuer;
 
-  return new linkedin.Client({
+async function create() {
+  if (!issuer) {
+    issuer = await Issuer.discover("https://www.linkedin.com/oauth");
+  }
+
+  return new issuer.Client({
     client_id: config.linkedin.clientId,
     client_secret: config.linkedin.clientSecret,
     redirect_uris: [`${config.app.url}/login/callback`],

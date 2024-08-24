@@ -1,5 +1,11 @@
 import React from "react";
+import { ChakraProvider } from "@chakra-ui/react";
+import { MainView } from "./components/MainView";
 
 export function createApp() {
-  return <p>Hello world from React and @fastify/vite!</p>;
+  return (
+    <ChakraProvider>
+      <MainView />
+    </ChakraProvider>
+  );
 }
