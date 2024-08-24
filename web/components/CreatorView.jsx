@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { LinkedInPoster } from "./LinkedInPoster";
 import { Loader } from "./Loader";
 import { NewsArticleView, NewsSearchView } from "./NewsSearchView";
 import * as api from "../utilities/api";
@@ -66,11 +67,11 @@ export function CreatorView() {
       {user ? (
         <Container p={3}>
           <Stack gap={3}>
-            <Text>
+            <Text color="GrayText">
               <strong>Logged in as:</strong> {user.email}
             </Text>
             {selectedArticle ? (
-              <Stack gap={1}>
+              <Stack gap={3}>
                 <Text>
                   You have selected below article (
                   <Link color="blue.500" href="" onClick={resetSelection}>
@@ -79,6 +80,11 @@ export function CreatorView() {
                   to reset):
                 </Text>
                 <NewsArticleView article={selectedArticle} />
+                <LinkedInPoster
+                  article={selectedArticle}
+                  onClickReset={resetSelection}
+                  user={user}
+                />
               </Stack>
             ) : (
               <NewsSearchView onArticleSelected={selectArticle} />

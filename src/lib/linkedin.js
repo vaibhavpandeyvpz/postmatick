@@ -8,7 +8,7 @@ const client = new RestliClient();
  * @param {String} userId
  * @param {String} text
  * @param {String | null} media
- * @param {'CONNECTIONS' | 'PUBLIC' | 'LOGGED_IN'} visibility
+ * @param {'CONNECTIONS' | 'LOGGED_IN' | 'PUBLIC'} visibility
  * @param {Boolean} draft
  * @param {Boolean} distribute
  * @param {Boolean} sharing
@@ -39,7 +39,7 @@ function post(
         ? {
             content: {
               media: {
-                altText: text,
+                altText: text.substring(0, 25),
                 id: media,
               },
             },

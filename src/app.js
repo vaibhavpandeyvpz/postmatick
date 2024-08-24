@@ -1,3 +1,4 @@
+const axios = require("axios");
 const fastify = require("fastify");
 const S = require("fluent-json-schema");
 const removeMarkdown = require("remove-markdown");
@@ -80,7 +81,31 @@ app.post(
   async function handler(req, reply) {
     const { access_token } = req.session.get("linkedin_access_token");
     const userInfo = await auth.userInfo(access_token);
-    const { text, media, visibility } = req.body;
+    const { text, visibility } = req.body;
+    let media = req.body.media;
+    if (
+      media &&
+      (media.startsWith("http://") || media.startsWith("https://"))
+    ) {
+      const { image, uploadUrl } = await linkedin.upload(
+        access_token,
+        userInfo.sub,
+      );
+      await axios
+        .get(media, {
+          decompress: false,
+          responseType: "arraybuffer",
+        })
+        .then(({ data }) =>
+          axios.post(uploadUrl, data, {
+            headers: {
+              "content-type": "image/png",
+            },
+          }),
+        );
+      media = image;
+    }
+
     const { createdEntityId } = await linkedin.post(
       access_token,
       userInfo.sub,
@@ -113,13 +138,16 @@ app.post(
   "/write",
   {
     schema: {
-      querystring: S.object()
+      body: S.object()
         .prop("url", S.string().format(S.FORMATS.URL).required())
-        .prop("image_url", S.string().format(S.FORMATS.URL)),
+        .prop(
+          "image_url",
+          S.mixed([S.TYPES.STRING, S.TYPES.NULL]).format(S.FORMATS.URL),
+        ),
     },
   },
   async function handler(req, reply) {
-    const { url } = req.query;
+    const { url } = req.body;
     const article = await newsapi.read(url);
     const content = await openai.complete([
       {
@@ -134,7 +162,7 @@ app.post(
       },
     ]);
     let hashtags = content.match(/#\w+/g);
-    if (req.query.image_url) {
+    if (req.body.image_url) {
       const description = await openai.complete([
         {
           role: "user",
@@ -145,7 +173,7 @@ app.post(
             },
             {
               type: "image_url",
-              image_url: { url: req.query.image_url },
+              image_url: { url: req.body.image_url },
             },
           ],
         },
@@ -160,7 +188,7 @@ app.post(
         hashtags.join(" "),
     );
 
-    reply.send({ written: removeMarkdown(content), image });
+    reply.send({ text: removeMarkdown(content), image });
   },
 );
 

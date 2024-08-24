@@ -69,45 +69,49 @@ export function NewsSearchView({ onArticleSelected }) {
   const [isSearchingArticles, setSearchingArticles] = useState(false);
   const [query, setQuery] = useState("");
 
-  const searchArticles = useCallback(() => {
-    if (isSearchingArticles) {
-      return;
-    }
+  const searchArticles = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (isSearchingArticles) {
+        return;
+      }
 
-    setSearchingArticles(true);
-    api
-      .news(query)
-      .then(({ articles }) => {
-        setArticles(articles);
-      })
-      .finally(() => {
-        setSearchingArticles(false);
-      });
-  }, [isSearchingArticles, query, setArticles, setSearchingArticles]);
+      setSearchingArticles(true);
+      api
+        .news(query)
+        .then(({ articles }) => {
+          setArticles(articles);
+        })
+        .finally(() => {
+          setSearchingArticles(false);
+        });
+    },
+    [isSearchingArticles, query, setArticles, setSearchingArticles],
+  );
 
   return (
     <Stack gap={3}>
-      <Stack direction="row">
-        <InputGroup>
-          <InputLeftElement pointerEvents="none">
-            <Search2Icon color="gray.300" />
-          </InputLeftElement>
-          <Input
-            placeholder="Enter a topic e.g., artificial intelligence"
-            defaultValue={query}
-            onChange={(e) => setQuery(e.target.value)}
-            tabIndex={0}
-            type="search"
-          />
-        </InputGroup>
-        <Button
-          isLoading={isSearchingArticles}
-          onClick={searchArticles}
-          tabIndex={1}
-        >
-          Search
-        </Button>
-      </Stack>
+      <form onSubmit={searchArticles}>
+        <Stack direction="row">
+          <InputGroup>
+            <InputLeftElement pointerEvents="none">
+              <Search2Icon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              placeholder="Enter a topic e.g., artificial intelligence"
+              defaultValue={query}
+              onChange={(e) => setQuery(e.target.value)}
+              tabIndex={0}
+              type="search"
+            />
+          </InputGroup>
+          {!isSearchingArticles && (
+            <Button tabIndex={1} type="submit">
+              Search
+            </Button>
+          )}
+        </Stack>
+      </form>
       {isSearchingArticles ? (
         <Box position="relative" h="250px">
           <AbsoluteCenter axis="both">
