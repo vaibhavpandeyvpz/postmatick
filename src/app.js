@@ -2,10 +2,12 @@ const fastify = require("fastify");
 const S = require("fluent-json-schema");
 const fs = require("fs");
 const path = require("path");
+const removeMarkdown = require("remove-markdown");
 
 const auth = require("./lib/auth");
 const linkedin = require("./lib/linkedin");
 const newsapi = require("./lib/newsapi");
+const openai = require("./lib/openai");
 const config = require("./config");
 
 const app = fastify({
@@ -60,6 +62,61 @@ app.get(
       }));
 
     reply.send({ articles });
+  },
+);
+
+app.post(
+  "/write",
+  {
+    schema: {
+      querystring: S.object()
+        .prop("url", S.string().format(S.FORMATS.URL).required())
+        .prop("image_url", S.string().format(S.FORMATS.URL)),
+    },
+  },
+  async function handler(request, reply) {
+    const { url } = request.query;
+    const article = await newsapi.read(url);
+    const content = await openai.complete([
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Create short content for a LinkedIn post based on the following content from an online article.",
+          },
+          { type: "text", text: article },
+        ],
+      },
+    ]);
+    let hashtags = content.match(/#\w+/g);
+    if (request.query.image_url) {
+      const description = await openai.complete([
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Extract and represent whatever is in the image as popular hashtags.",
+            },
+            {
+              type: "image_url",
+              image_url: { url: request.query.image_url },
+            },
+          ],
+        },
+      ]);
+      const tags = description.match(/#\w+/g);
+
+      hashtags = [...hashtags, ...tags];
+    }
+
+    const image = await openai.draw(
+      "Generate image for a Linkedin post based on following hashtags: " +
+        hashtags.join(" "),
+    );
+
+    reply.send({ written: removeMarkdown(content), image });
   },
 );
 

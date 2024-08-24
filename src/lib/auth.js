@@ -5,8 +5,8 @@ async function create() {
   const linkedin = await Issuer.discover("https://www.linkedin.com/oauth");
 
   return new linkedin.Client({
-    client_id: config.linkedin.client_id,
-    client_secret: config.linkedin.client_secret,
+    client_id: config.linkedin.clientId,
+    client_secret: config.linkedin.clientSecret,
     redirect_uris: [`${config.app.url}/login/callback`],
     response_types: ["code"],
     token_endpoint_auth_method: "client_secret_post",

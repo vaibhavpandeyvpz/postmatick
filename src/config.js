@@ -4,13 +4,20 @@ const config = {
     url: process.env.APP_URL,
   },
   linkedin: {
-    client_id: process.env.LINKEDIN_CLIENT_ID,
-    client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+    clientId: process.env.LINKEDIN_CLIENT_ID,
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     scopes: (process.env.LINKEDIN_SCOPES || "").split(","),
     version: "202408",
   },
   newsapi: {
-    key: process.env.NEWSAPI_KEY,
+    apiKey: process.env.NEWSAPI_KEY,
+  },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY,
+    models: {
+      completion: "gpt-4o",
+      image: "dall-e-3",
+    },
   },
   port: parseInt(process.env.PORT),
   session: {
