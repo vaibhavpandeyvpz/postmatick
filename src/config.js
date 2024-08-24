@@ -7,6 +7,7 @@ const config = {
     client_id: process.env.LINKEDIN_CLIENT_ID,
     client_secret: process.env.LINKEDIN_CLIENT_SECRET,
     scopes: (process.env.LINKEDIN_SCOPES || "").split(","),
+    version: "202408",
   },
   port: parseInt(process.env.PORT),
   session: {

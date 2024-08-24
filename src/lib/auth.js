@@ -32,7 +32,14 @@ async function finalize(req, state) {
   return client.callback(`${config.app.url}/login/callback`, params, { state });
 }
 
+async function userInfo(accessToken) {
+  const client = await create();
+
+  return client.userinfo(accessToken);
+}
+
 module.exports = {
   authorize,
   finalize,
+  userInfo,
 };
