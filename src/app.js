@@ -5,6 +5,7 @@ const path = require("path");
 
 const auth = require("./lib/auth");
 const linkedin = require("./lib/linkedin");
+const newsapi = require("./lib/newsapi");
 const config = require("./config");
 
 const app = fastify({
@@ -31,6 +32,36 @@ app.get("/me", async function handler(request, reply) {
   const user = await auth.userInfo(access_token);
   reply.send({ user });
 });
+
+app.get(
+  "/news",
+  {
+    schema: {
+      querystring: S.object()
+        .prop("q", S.string().required())
+        .prop("from", S.string().format(S.FORMATS.DATE)),
+    },
+  },
+  async function handler(request, reply) {
+    const everything = await newsapi.everything(
+      request.query.q,
+      request.query.from,
+    );
+    const articles = everything
+      .filter((x) => x.content !== "[Removed]")
+      .map((x) => ({
+        image: x.urlToImage,
+        title: x.title,
+        description: x.description,
+        url: x.url,
+        source: x.source.name,
+        author: x.author,
+        ts: x.publishedAt,
+      }));
+
+    reply.send({ articles });
+  },
+);
 
 app.post(
   "/post",

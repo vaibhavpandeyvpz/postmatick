@@ -9,6 +9,9 @@ const config = {
     scopes: (process.env.LINKEDIN_SCOPES || "").split(","),
     version: "202408",
   },
+  newsapi: {
+    key: process.env.NEWSAPI_KEY,
+  },
   port: parseInt(process.env.PORT),
   session: {
     cookie: "postmatick",
