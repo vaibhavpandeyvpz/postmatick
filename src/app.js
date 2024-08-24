@@ -12,16 +12,19 @@ const app = fastify({
   logger: config.app.env === "development",
 });
 
-app.get("/", function handler(request, reply) {
-  const token = request.session.get("linkedin_access_token");
+app.get("/", function handler(req, reply) {
+  reply.html();
+});
+
+app.get("/status", function handler(req, reply) {
+  const token = req.session.get("linkedin_access_token");
   reply.send({
-    hello: "world",
     logged: !!token ? "in" : "out",
   });
 });
 
-app.get("/me", async function handler(request, reply) {
-  const { access_token } = request.session.get("linkedin_access_token");
+app.get("/me", async function handler(req, reply) {
+  const { access_token } = req.session.get("linkedin_access_token");
   const user = await auth.userInfo(access_token);
   reply.send({ user });
 });
@@ -35,11 +38,8 @@ app.get(
         .prop("from", S.string().format(S.FORMATS.DATE)),
     },
   },
-  async function handler(request, reply) {
-    const everything = await newsapi.everything(
-      request.query.q,
-      request.query.from,
-    );
+  async function handler(req, reply) {
+    const everything = await newsapi.everything(req.query.q, req.query.from);
     const articles = everything
       .filter((x) => x.content !== "[Removed]")
       .map((x) => ({
@@ -65,8 +65,8 @@ app.post(
         .prop("image_url", S.string().format(S.FORMATS.URL)),
     },
   },
-  async function handler(request, reply) {
-    const { url } = request.query;
+  async function handler(req, reply) {
+    const { url } = req.query;
     const article = await newsapi.read(url);
     const content = await openai.complete([
       {
@@ -81,7 +81,7 @@ app.post(
       },
     ]);
     let hashtags = content.match(/#\w+/g);
-    if (request.query.image_url) {
+    if (req.query.image_url) {
       const description = await openai.complete([
         {
           role: "user",
@@ -92,7 +92,7 @@ app.post(
             },
             {
               type: "image_url",
-              image_url: { url: request.query.image_url },
+              image_url: { url: req.query.image_url },
             },
           ],
         },
@@ -121,10 +121,10 @@ app.post(
         .prop("visibility", S.enum(["CONNECTIONS", "PUBLIC"]).required()),
     },
   },
-  async function handler(request, reply) {
-    const { access_token } = request.session.get("linkedin_access_token");
+  async function handler(req, reply) {
+    const { access_token } = req.session.get("linkedin_access_token");
     const userInfo = await auth.userInfo(access_token);
-    const { text, media, visibility } = request.body;
+    const { text, media, visibility } = req.body;
     const { createdEntityId } = await linkedin.post(
       access_token,
       userInfo.sub,
@@ -136,26 +136,26 @@ app.post(
   },
 );
 
-app.get("/login", async function handler(request, reply) {
+app.get("/login", async function handler(req, reply) {
   const [url, state] = await auth.authorize();
-  request.session.set("openid_linkedin_state", state);
+  req.session.set("openid_linkedin_state", state);
   reply.redirect(url);
 });
 
-app.get("/login/callback", async function handler(request, reply) {
-  const state = request.session.get("openid_linkedin_state");
-  const token = await auth.finalize(request, state);
-  request.session.set("linkedin_access_token", token);
+app.get("/login/callback", async function handler(req, reply) {
+  const state = req.session.get("openid_linkedin_state");
+  const token = await auth.finalize(req, state);
+  req.session.set("linkedin_access_token", token);
   reply.send({ logged: "in" });
 });
 
-app.post("/logout", async function handler(request, reply) {
-  request.session.delete();
+app.post("/logout", async function handler(req, reply) {
+  req.session.delete();
   reply.send({ logged: "out" });
 });
 
-app.post("/upload", async function handler(request, reply) {
-  const { access_token } = request.session.get("linkedin_access_token");
+app.post("/upload", async function handler(req, reply) {
+  const { access_token } = req.session.get("linkedin_access_token");
   const userInfo = await auth.userInfo(access_token);
   const result = await linkedin.upload(access_token, userInfo.sub);
   reply.send({
