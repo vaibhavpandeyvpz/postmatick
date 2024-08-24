@@ -10,10 +10,6 @@ export function MainView() {
   const [isLoggedIn, setLoggedIn] = useState(null);
 
   useEffect(() => {
-    if (isCheckingStatus || isLoggedIn !== null) {
-      return;
-    }
-
     setCheckingStatus(true);
     api
       .status()

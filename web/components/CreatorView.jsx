@@ -4,13 +4,16 @@ import {
   Box,
   Button,
   Container,
+  Link,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { Loader } from "./Loader";
+import { NewsArticleView, NewsSearchView } from "./NewsSearchView";
 import * as api from "../utilities/api";
 
 export function CreatorView() {
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [isFetchingUser, setFetchingUser] = useState(false);
   const [isLoggingOut, setLoggingOut] = useState(false);
   const [user, setUser] = useState(null);
@@ -31,11 +34,22 @@ export function CreatorView() {
       });
   }, []);
 
-  useEffect(() => {
-    if (isFetchingUser || user) {
-      return;
-    }
+  const resetSelection = useCallback(
+    (e) => {
+      e.preventDefault();
+      setSelectedArticle(null);
+    },
+    [setSelectedArticle],
+  );
 
+  const selectArticle = useCallback(
+    (x) => {
+      setSelectedArticle(x);
+    },
+    [setSelectedArticle],
+  );
+
+  useEffect(() => {
     setFetchingUser(true);
     api
       .profile()
@@ -50,8 +64,26 @@ export function CreatorView() {
   return (
     <>
       {user ? (
-        <Container>
-          <Text>Logged in as {user.email}</Text>
+        <Container p={3}>
+          <Stack gap={3}>
+            <Text>
+              <strong>Logged in as:</strong> {user.email}
+            </Text>
+            {selectedArticle ? (
+              <Stack gap={1}>
+                <Text>
+                  You have selected below article (
+                  <Link color="blue.500" href="" onClick={resetSelection}>
+                    click here
+                  </Link>{" "}
+                  to reset):
+                </Text>
+                <NewsArticleView article={selectedArticle} />
+              </Stack>
+            ) : (
+              <NewsSearchView onArticleSelected={selectArticle} />
+            )}
+          </Stack>
         </Container>
       ) : isFetchingUser ? (
         <Box position="relative" h="100vh">
@@ -71,7 +103,6 @@ export function CreatorView() {
                 <Button
                   colorScheme="red"
                   isLoading={isLoggingOut}
-                  loadingText="Logging out…"
                   onClick={logOut}
                 >
                   Logout
