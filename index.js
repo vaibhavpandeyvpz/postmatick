@@ -1,9 +1,9 @@
 require("dotenv").config();
+
 const app = require("./src/app");
+const config = require("./src/config");
 
-const port = process.env.PORT || 3000;
-
-app.listen({ port }, (err) => {
+app.listen({ port: config.port }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
