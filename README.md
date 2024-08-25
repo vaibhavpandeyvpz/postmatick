@@ -9,6 +9,8 @@ Before beginning, make sure to have [nvm](https://github.com/nvm-sh/nvm) install
 
 Go to [linkedin.com/developers](https://www.linkedin.com/developers/) and create an app, use `http://127.0.0.1:3000/login/callback` as redirect URL. Ensure below products are whitelisted.
 
+![LinkedIn Products](assets/linkedin-products.png)
+
 Also, go to [newsapi.org](https://newsapi.org/) and sign up for a free account.
 
 You will also need to sign up for [platform.openai.com](https://platform.openai.com/), add some credits and generate an API key from there.
