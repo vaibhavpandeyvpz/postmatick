@@ -33,6 +33,7 @@
     "prettier": ">=2",
     "vite": "^5.4.2"
   },
+  "license": "APACHE-2.0",
   "main": "index.js",
   "name": "postmatick",
   "private": true,
