@@ -7,6 +7,7 @@ const auth = require("./lib/auth");
 const linkedin = require("./lib/linkedin");
 const newsapi = require("./lib/newsapi");
 const openai = require("./lib/openai");
+const scraping = require("./lib/scraping");
 const config = require("./config");
 
 const app = fastify({
@@ -148,7 +149,7 @@ app.post(
   },
   async function handler(req, reply) {
     const { url } = req.body;
-    const article = await newsapi.read(url);
+    const article = await scraping.read(url);
     const content = await openai.complete([
       {
         role: "user",
