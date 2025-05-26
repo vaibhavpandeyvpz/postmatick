@@ -1,0 +1,57 @@
+services:
+  app:
+    build: .
+    command: npm run dev
+    depends_on:
+      create-session-key:
+        condition: service_completed_successfully
+    labels:
+      - "traefik.http.routers.web.entrypoints=web,websecure"
+      - "traefik.http.routers.web.rule=Host(`web.local.dev`)"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+    volumes:
+      - .:/app
+
+  create-session-key:
+    command: sh -c "node ./node_modules/@fastify/secure-session/genkey.js > session.key"
+    depends_on:
+      install-dependencies:
+        condition: service_completed_successfully
+    image: node:18
+    labels:
+      - "traefik.enable=false"
+    restart: no
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  install-dependencies:
+    command: yarn install
+    image: node:18
+    labels:
+      - "traefik.enable=false"
+    restart: no
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  traefik:
+    command:
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+    depends_on:
+      - app
+    image: traefik:banon
+    labels:
+      - "traefik.enable=false"
+      - "traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - .:/certs:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik-tls.yml:/etc/traefik/dynamic_conf/traefik-tls.yml:ro

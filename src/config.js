@@ -19,7 +19,8 @@ const config = {
       image: "dall-e-3",
     },
   },
-  port: parseInt(process.env.PORT),
+  host: process.env.HOST || "0.0.0.0",
+  port: parseInt(process.env.PORT || "3000"),
   session: {
     cookie: "postmatick",
     expiration: 24 * 60 * 60, // 24 hours

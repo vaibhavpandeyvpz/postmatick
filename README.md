@@ -5,9 +5,35 @@ Built using [Node.js](https://nodejs.org/) and [React.js](https://react.dev/) wi
 
 ## Prepare
 
+Before you setup/install/run the project, there are certain steps to ensure proper functionality.
+
+### SSL/TLS
+
+To use SSL for local development, you need to have [mkcert](https://github.com/FiloSottile/mkcert) installed on your machine.
+Once installed, next install the [mkcert](https://github.com/FiloSottile/mkcert)'s local CA in system's trust store.
+
+```shell
+sudo mkcert -install
+```
+
+Then generate an SSL certificate for local development using below command:
+
+```shell
+mkcert local.dev '*.local.dev' localhost 127.0.0.1 ::1
+```
+
+[Traefik](https://traefik.io/) requires you to route hostnames to your local machine.
+To do so, add the following lines to your `/etc/hosts` file:
+
+```
+127.0.0.1 web.local.dev
+```
+
+### LinkedIn
+
 Before beginning, make sure to have [nvm](https://github.com/nvm-sh/nvm) installed on your workstation.
 
-Go to [linkedin.com/developers](https://www.linkedin.com/developers/) and create an app, use `http://127.0.0.1:3000/login/callback` as redirect URL. Ensure below products are whitelisted.
+Go to [linkedin.com/developers](https://www.linkedin.com/developers/) and create an app, use `https://web.local.dev/login/callback` as redirect URL. Ensure below products are whitelisted.
 
 ![LinkedIn Products](assets/linkedin-products.png)
 
@@ -28,17 +54,32 @@ cp .env.dist .env
 
 # update LINKEDIN_*, NEWSAPI_* and OPENAI_* values
 
-# install JS dependencies
-yarn install
-
-# generate session encryption key
-node ./node_modules/@fastify/secure-session/genkey.js > session.key
-
 # start dev server
-npm start
+docker compose up -d
 ```
 
-Go to [127.0.0.1:3000](http://127.0.0.1:3000) in your browser to use the app.
+## Code-style
+
+The project uses [Prettier](https://prettier.io/) to enforce code-style.
+To run it and fix any issues, use below command:
+
+```shell
+npx prettier . --write
+```
+
+Go to [web.local.dev](https://web.local.dev/) in your browser to use the app.
+
+## Deployment
+
+You can deploy the project into production (using [Docker](https://www.docker.com/)) using below commands:
+
+```shell
+# build production container
+docker build -t postmatick .
+
+# push image to registry
+docker push postmatick
+```
 
 ## License
 

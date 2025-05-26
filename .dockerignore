@@ -131,6 +131,3 @@ dist
 
 # app file(s)
 session.key
-
-# local SSL/TLS certificate(s)
-*.pem

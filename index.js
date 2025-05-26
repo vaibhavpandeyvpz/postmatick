@@ -20,7 +20,7 @@ const config = require("./src/config");
 
   await app.vite.ready();
 
-  app.listen({ port: config.port }, (err) => {
+  app.listen({ host: config.host, port: config.port }, (err) => {
     if (err) {
       app.log.error(err);
       process.exit(1);
