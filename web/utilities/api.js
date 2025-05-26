@@ -4,8 +4,8 @@ export async function logOut() {
   return axios.post("/logout").then(({ data }) => data);
 }
 
-export async function news(q) {
-  return axios.get("/news", { params: { q } }).then(({ data }) => data);
+export async function references(q) {
+  return axios.get("/references", { params: { q } }).then(({ data }) => data);
 }
 
 export async function post(text, media, visibility = "PUBLIC") {

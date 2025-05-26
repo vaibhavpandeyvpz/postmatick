@@ -11,7 +11,16 @@ function everything(q, from = null, sortBy = "popularity") {
     .get("https://newsapi.org/v2/everything", {
       params: { q, from, sortBy, apiKey: config.newsapi.apiKey },
     })
-    .then(({ data }) => data.articles);
+    .then(({ data }) =>
+      data.articles
+        .filter((x) => x.content !== "[Removed]")
+        .map((x) => ({
+          title: x.title,
+          description: x.description,
+          image: x.urlToImage,
+          url: x.url,
+        })),
+    );
 }
 
 module.exports = {

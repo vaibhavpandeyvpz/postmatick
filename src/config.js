@@ -3,6 +3,13 @@ const config = {
     env: process.env.APP_ENV,
     url: process.env.APP_URL,
   },
+  freepik: {
+    apiKey: process.env.FREEPIK_API_KEY,
+  },
+  "google-cse": {
+    apiKey: process.env.GOOGLE_CSE_API_KEY,
+    id: process.env.GOOGLE_CSE_ID,
+  },
   linkedin: {
     clientId: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
@@ -15,7 +22,7 @@ const config = {
   openai: {
     apiKey: process.env.OPENAI_API_KEY,
     models: {
-      completion: "gpt-4o",
+      completion: "gpt-4o-mini",
       image: "dall-e-3",
     },
   },

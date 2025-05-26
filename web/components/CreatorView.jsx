@@ -10,11 +10,11 @@ import {
 } from "@chakra-ui/react";
 import { LinkedInPoster } from "./LinkedInPoster";
 import { Loader } from "./Loader";
-import { NewsArticleView, NewsSearchView } from "./NewsSearchView";
+import { SearchResultView, ReferencesView } from "./ReferencesView";
 import * as api from "../utilities/api";
 
 export function CreatorView() {
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
   const [isFetchingUser, setFetchingUser] = useState(false);
   const [isLoggingOut, setLoggingOut] = useState(false);
   const [user, setUser] = useState(null);
@@ -38,16 +38,16 @@ export function CreatorView() {
   const resetSelection = useCallback(
     (e) => {
       e.preventDefault();
-      setSelectedArticle(null);
+      setSelectedResult(null);
     },
-    [setSelectedArticle],
+    [setSelectedResult],
   );
 
-  const selectArticle = useCallback(
+  const selectResult = useCallback(
     (x) => {
-      setSelectedArticle(x);
+      setSelectedResult(x);
     },
-    [setSelectedArticle],
+    [setSelectedResult],
   );
 
   useEffect(() => {
@@ -70,24 +70,24 @@ export function CreatorView() {
             <Text color="GrayText">
               <strong>Logged in as:</strong> {user.email}
             </Text>
-            {selectedArticle ? (
+            {selectedResult ? (
               <Stack gap={3}>
                 <Text>
-                  You have selected below article (
+                  You have selected below result (
                   <Link color="blue.500" href="" onClick={resetSelection}>
                     click here
                   </Link>{" "}
                   to reset):
                 </Text>
-                <NewsArticleView article={selectedArticle} />
+                <SearchResultView result={selectedResult} />
                 <LinkedInPoster
-                  article={selectedArticle}
+                  result={selectedResult}
                   onClickReset={resetSelection}
                   user={user}
                 />
               </Stack>
             ) : (
-              <NewsSearchView onArticleSelected={selectArticle} />
+              <ReferencesView onResultSelected={selectResult} />
             )}
           </Stack>
         </Container>

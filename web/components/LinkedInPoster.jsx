@@ -21,7 +21,7 @@ import { FaArrowRotateLeft, FaGlobe, FaPaperPlane } from "react-icons/fa6";
 import { Loader } from "./Loader";
 import * as api from "../utilities/api";
 
-export function LinkedInPoster({ article, user, onClickReset }) {
+export function LinkedInPoster({ result, user, onClickReset }) {
   const [generatedImage, setGeneratedImage] = useState(null);
   const [generatedText, setGeneratedText] = useState(null);
   const [isGeneratedTextExpanded, setGeneratedTextExpanded] = useState(false);
@@ -41,7 +41,7 @@ export function LinkedInPoster({ article, user, onClickReset }) {
 
     setGenerating(true);
     api
-      .write(article.url, article.image)
+      .write(result.url, result.image)
       .then(({ text, image }) => {
         setGeneratedImage(image);
         setGeneratedText(text);
@@ -156,7 +156,7 @@ export function LinkedInPoster({ article, user, onClickReset }) {
                     src={
                       generatedImage || "https://placehold.co/400?text=no+image"
                     }
-                    alt={article.title}
+                    alt={result.title}
                   />
                 </Stack>
               </CardBody>

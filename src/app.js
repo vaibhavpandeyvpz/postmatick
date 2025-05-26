@@ -4,6 +4,7 @@ const S = require("fluent-json-schema");
 const removeMarkdown = require("remove-markdown");
 
 const auth = require("./lib/auth");
+const gcs = require("./lib/google-custom-search");
 const linkedin = require("./lib/linkedin");
 const newsapi = require("./lib/newsapi");
 const openai = require("./lib/openai");
@@ -43,29 +44,16 @@ app.get("/me", async function handler(req, reply) {
 });
 
 app.get(
-  "/news",
+  "/references",
   {
     schema: {
-      querystring: S.object()
-        .prop("q", S.string().required())
-        .prop("from", S.string().format(S.FORMATS.DATE)),
+      querystring: S.object().prop("q", S.string().required()),
     },
   },
   async function handler(req, reply) {
-    const everything = await newsapi.everything(req.query.q, req.query.from);
-    const articles = everything
-      .filter((x) => x.content !== "[Removed]")
-      .map((x) => ({
-        image: x.urlToImage,
-        title: x.title,
-        description: x.description,
-        url: x.url,
-        source: x.source.name,
-        author: x.author,
-        ts: x.publishedAt,
-      }));
+    const results = await gcs.search(req.query.q);
 
-    reply.send({ articles });
+    reply.send({ results });
   },
 );
 

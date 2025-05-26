@@ -52,7 +52,7 @@ nvm install && nvm use
 # create a .env file
 cp .env.dist .env
 
-# update LINKEDIN_*, NEWSAPI_* and OPENAI_* values
+# update credential values
 
 # start dev server
 docker compose up -d

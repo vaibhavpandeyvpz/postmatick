@@ -18,40 +18,42 @@ import {
 import { Loader } from "./Loader";
 import * as api from "../utilities/api";
 
-export function NewsArticleView({ article, onArticleSelected }) {
-  const goToArticle = () => window.open(article.url);
+export function SearchResultView({ result, onResultSelected }) {
+  const goToResult = () => window.open(result.url);
 
   return (
     <Card direction={{ base: "column", sm: "row" }} variant="outline">
-      <Image
-        objectFit="cover"
-        maxW={{ base: "100%", sm: "200px" }}
-        src={article.image || "https://placehold.co/400?text=no+image"}
-        alt={article.title}
-      />
+      {result.image && (
+        <Image
+          objectFit="cover"
+          maxW={{ base: "100%", sm: "200px" }}
+          src={result.image || "https://placehold.co/400?text=no+image"}
+          alt={result.title}
+        />
+      )}
       <Stack>
         <CardBody>
           <Stack gap={1}>
             <Heading noOfLines={2} size="md">
-              {article.title}
+              {result.title}
             </Heading>
-            <Text noOfLines={3}>{article.description}</Text>
+            <Text noOfLines={3}>{result.description}</Text>
           </Stack>
         </CardBody>
         <CardFooter>
           <Stack direction="row" gap={1}>
-            {onArticleSelected && (
+            {onResultSelected && (
               <Button
                 colorScheme="blue"
                 leftIcon={<EditIcon />}
-                onClick={() => onArticleSelected(article)}
+                onClick={() => onResultSelected(result)}
               >
                 Create post
               </Button>
             )}
             <Button
               colorScheme="blue"
-              onClick={goToArticle}
+              onClick={goToResult}
               rightIcon={<ArrowForwardIcon />}
               variant="outline"
             >
@@ -64,34 +66,34 @@ export function NewsArticleView({ article, onArticleSelected }) {
   );
 }
 
-export function NewsSearchView({ onArticleSelected }) {
-  const [articles, setArticles] = useState(null);
-  const [isSearchingArticles, setSearchingArticles] = useState(false);
+export function ReferencesView({ onResultSelected }) {
+  const [results, setResults] = useState(null);
+  const [isSearchingResults, setSearchingResults] = useState(false);
   const [query, setQuery] = useState("");
 
-  const searchArticles = useCallback(
+  const searchReferences = useCallback(
     (e) => {
       e.preventDefault();
-      if (isSearchingArticles) {
+      if (isSearchingResults) {
         return;
       }
 
-      setSearchingArticles(true);
+      setSearchingResults(true);
       api
-        .news(query)
-        .then(({ articles }) => {
-          setArticles(articles);
+        .references(query)
+        .then(({ results }) => {
+          setResults(results);
         })
         .finally(() => {
-          setSearchingArticles(false);
+          setSearchingResults(false);
         });
     },
-    [isSearchingArticles, query, setArticles, setSearchingArticles],
+    [isSearchingResults, query, setResults, setSearchingResults],
   );
 
   return (
     <Stack gap={3}>
-      <form onSubmit={searchArticles}>
+      <form onSubmit={searchReferences}>
         <Stack direction="row">
           <InputGroup>
             <InputLeftElement pointerEvents="none">
@@ -105,26 +107,26 @@ export function NewsSearchView({ onArticleSelected }) {
               type="search"
             />
           </InputGroup>
-          {!isSearchingArticles && (
+          {!isSearchingResults && (
             <Button tabIndex={1} type="submit">
               Search
             </Button>
           )}
         </Stack>
       </form>
-      {isSearchingArticles ? (
+      {isSearchingResults ? (
         <Box position="relative" h="250px">
           <AbsoluteCenter axis="both">
             <Loader />
           </AbsoluteCenter>
         </Box>
-      ) : articles?.length ? (
+      ) : results?.length ? (
         <Stack maxHeight="650px" overflowY="auto">
-          {articles.map((x) => (
-            <NewsArticleView
-              article={x}
+          {results.map((x) => (
+            <SearchResultView
+              result={x}
               key={x.url}
-              onArticleSelected={onArticleSelected}
+              onResultSelected={onResultSelected}
             />
           ))}
         </Stack>
@@ -132,7 +134,7 @@ export function NewsSearchView({ onArticleSelected }) {
         <Box position="relative" h="100px">
           <AbsoluteCenter axis="both">
             <Text color="GrayText" fontSize="xs">
-              No articles to show.
+              No results to show.
             </Text>
           </AbsoluteCenter>
         </Box>

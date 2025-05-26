@@ -23,7 +23,7 @@ async function complete(messages) {
 async function draw(prompt) {
   const image = await client.images.generate({
     model: config.openai.models.image,
-    prompt,
+    prompt: `${prompt}\n\nphoto, photograph, raw photo, analog photo, 4k, fujifilm photograph`,
     size: "1024x1024",
     quality: "standard",
     n: 1,
