@@ -1,8 +1,8 @@
 import React from "react";
 import { ChakraProvider } from "@chakra-ui/react";
-import { MainView } from "./components/MainView";
+import { MainView } from "./views/MainView";
 
-export function createApp() {
+export default function createApp() {
   return (
     <ChakraProvider>
       <MainView />

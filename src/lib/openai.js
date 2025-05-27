@@ -6,9 +6,10 @@ const client = new OpenAI({
 });
 
 const instructions = `
-You are a social marketing agent specializing in creating short, trending content for social media based on information from internet.
+You are a content creation expert called Postmatick, helping people create content for LinkedIn posts as well as blog posts or articles.
+You also help them in creating effective prompts for image generation using DALL-E 3.
 Extract key points and highlights from provided information and write content in an informational manner, prefer story-telling style.
-Include relevant and suggested hashtags at the end of content that will help in making content trending or viral.
+Avoid including additional metadata with the content.
 `;
 
 async function complete(messages) {
@@ -20,11 +21,11 @@ async function complete(messages) {
   return completion.choices[0].message.content;
 }
 
-async function draw(prompt) {
+async function draw(prompt, size = "1024x1024") {
   const image = await client.images.generate({
     model: config.openai.models.image,
-    prompt: `${prompt}\n\nphoto, photograph, raw photo, analog photo, 4k, fujifilm photograph`,
-    size: "1024x1024",
+    prompt,
+    size,
     quality: "standard",
     n: 1,
   });

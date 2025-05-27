@@ -4,11 +4,13 @@ const S = require("fluent-json-schema");
 const removeMarkdown = require("remove-markdown");
 
 const auth = require("./lib/auth");
+const freepik = require("./lib/freepik");
 const gcs = require("./lib/google-custom-search");
 const linkedin = require("./lib/linkedin");
 const newsapi = require("./lib/newsapi");
 const openai = require("./lib/openai");
 const scraping = require("./lib/scraping");
+const wordpress = require("./lib/wordpress");
 const config = require("./config");
 
 const app = fastify({
@@ -18,6 +20,88 @@ const app = fastify({
 app.get("/", function handler(req, reply) {
   reply.html();
 });
+
+app.post(
+  "/draw",
+  {
+    schema: {
+      body: S.object()
+        .prop("contentType", S.enum(["LINKEDIN", "WORDPRESS"]).required())
+        .prop("content", S.string().required())
+        .prop("prompt", S.string()),
+    },
+  },
+  async function handler(req, reply) {
+    const { contentType, content, prompt } = req.body;
+
+    const image = await openai.draw(
+      prompt,
+      contentType === "LINKEDIN" ? "1024x1024" : "1792x1024",
+    );
+
+    reply.send({ image });
+  },
+);
+
+app.post(
+  "/idea",
+  {
+    schema: {
+      body: S.object()
+        .prop("contentType", S.enum(["LINKEDIN", "WORDPRESS"]).required())
+        .prop("content", S.string().required()),
+    },
+  },
+  async function handler(req, reply) {
+    const { contentType, content } = req.body;
+    const prompt = await openai.complete([
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `Create a prompt for DALL-E 3 to generate a relevant image for posting along the following content.
+            It should look like a realistic photograph, shot from a professional 4K camera.
+            Just respond with prompt as plain text, no metadata, sections or headings etc.`,
+          },
+          { type: "text", text: content },
+        ],
+      },
+    ]);
+
+    reply.send({ prompt });
+  },
+);
+
+app.get(
+  "/images",
+  {
+    schema: {
+      querystring: S.object().prop("q", S.string().required()),
+    },
+  },
+  async function handler(req, reply) {
+    const { q } = req.query;
+    const images = await freepik.search(q);
+
+    reply.send({ images });
+  },
+);
+
+app.get(
+  "/images/:id",
+  {
+    schema: {
+      params: S.object().prop("id", S.integer().required()),
+    },
+  },
+  async function handler(req, reply) {
+    const { id } = req.params;
+    const [image] = await freepik.download(id);
+
+    reply.send({ image });
+  },
+);
 
 app.get("/login", async function handler(req, reply) {
   const [url, state] = await auth.authorize();
@@ -44,14 +128,18 @@ app.get("/me", async function handler(req, reply) {
 });
 
 app.get(
-  "/references",
+  "/search",
   {
     schema: {
-      querystring: S.object().prop("q", S.string().required()),
+      querystring: S.object()
+        .prop("provider", S.enum(["GOOGLE", "NEWSAPI"]).required())
+        .prop("q", S.string().required()),
     },
   },
   async function handler(req, reply) {
-    const results = await gcs.search(req.query.q);
+    const { provider, q } = req.query;
+    const results =
+      provider === "GOOGLE" ? await gcs.search(q) : await newsapi.everything(q);
 
     reply.send({ results });
   },
@@ -62,47 +150,36 @@ app.post(
   {
     schema: {
       body: S.object()
-        .prop("text", S.string().required())
-        .prop("media", S.string())
-        .prop("visibility", S.enum(["CONNECTIONS", "PUBLIC"]).required()),
+        .prop("contentType", S.enum(["LINKEDIN", "WORDPRESS"]).required())
+        .prop("title", S.string())
+        .prop("content", S.string().required())
+        .prop("image", S.string()),
     },
   },
   async function handler(req, reply) {
     const { access_token } = req.session.get("linkedin_access_token");
     const userInfo = await auth.userInfo(access_token);
-    const { text, visibility } = req.body;
-    let media = req.body.media;
-    if (
-      media &&
-      (media.startsWith("http://") || media.startsWith("https://"))
-    ) {
-      const { image, uploadUrl } = await linkedin.upload(
+    const { contentType, title, content, image, visibility } = req.body;
+
+    if (contentType === "LINKEDIN") {
+      const { createdEntityId } = await linkedin.post(
         access_token,
         userInfo.sub,
+        removeMarkdown(content),
+        image,
+        visibility,
       );
-      await axios
-        .get(media, {
-          decompress: false,
-          responseType: "arraybuffer",
-        })
-        .then(({ data }) =>
-          axios.post(uploadUrl, data, {
-            headers: {
-              "content-type": "image/png",
-            },
-          }),
-        );
-      media = image;
+      reply.send({ id: createdEntityId });
+      return;
     }
 
-    const { createdEntityId } = await linkedin.post(
-      access_token,
-      userInfo.sub,
-      text,
-      media,
-      visibility,
-    );
-    reply.send({ id: createdEntityId });
+    if (contentType === "WORDPRESS") {
+      const { id } = await wordpress.post(title, content, image);
+      reply.send({ id });
+      return;
+    }
+
+    return reply.send({ success: false });
   },
 );
 
@@ -113,30 +190,18 @@ app.get("/status", function handler(req, reply) {
   });
 });
 
-app.post("/upload", async function handler(req, reply) {
-  const { access_token } = req.session.get("linkedin_access_token");
-  const userInfo = await auth.userInfo(access_token);
-  const result = await linkedin.upload(access_token, userInfo.sub);
-  reply.send({
-    id: result.image,
-    upload_url: result.uploadUrl,
-  });
-});
-
 app.post(
   "/write",
   {
     schema: {
       body: S.object()
+        .prop("contentType", S.enum(["LINKEDIN", "WORDPRESS"]).required())
         .prop("url", S.string().format(S.FORMATS.URL).required())
-        .prop(
-          "image_url",
-          S.mixed([S.TYPES.STRING, S.TYPES.NULL]).format(S.FORMATS.URL),
-        ),
+        .prop("prompt", S.string()),
     },
   },
   async function handler(req, reply) {
-    const { url } = req.body;
+    const { contentType, url, prompt } = req.body;
     const article = await scraping.read(url);
     const content = await openai.complete([
       {
@@ -144,40 +209,14 @@ app.post(
         content: [
           {
             type: "text",
-            text: "Create short content for a LinkedIn post based on the following content from an online article.",
+            text: prompt,
           },
           { type: "text", text: article },
         ],
       },
     ]);
-    let hashtags = content.match(/#\w+/g);
-    if (req.body.image_url) {
-      const description = await openai.complete([
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Extract and represent whatever is in the image as popular hashtags.",
-            },
-            {
-              type: "image_url",
-              image_url: { url: req.body.image_url },
-            },
-          ],
-        },
-      ]);
-      const tags = description.match(/#\w+/g);
 
-      hashtags = [...hashtags, ...tags];
-    }
-
-    const image = await openai.draw(
-      "Generate image for a Linkedin post based on following hashtags: " +
-        hashtags.join(" "),
-    );
-
-    reply.send({ text: removeMarkdown(content), image });
+    reply.send({ content });
   },
 );
 

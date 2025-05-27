@@ -1,11 +1,11 @@
 # postmatick
 
-Rewrite and post news article(s) from around the web to [LinkedIn](https://www.linkedin.com/feed/) feed using AI.
-Built using [Node.js](https://nodejs.org/) and [React.js](https://react.dev/) with [Fastify](https://fastify.dev), [OpenAI](https://openai.com) and [News API](https://newsapi.org).
+Rewrite and post content from around the web to [LinkedIn](https://www.linkedin.com/feed/) feed or [WordPress](https://www.wordpress.org/) blogs using AI.
+Built using [Node.js](https://nodejs.org/) and [React.js](https://react.dev/) with [Fastify](https://fastify.dev), [OpenAI](https://openai.com), [Programmable Search Engine](https://programmablesearchengine.google.com/about/) and [News API](https://newsapi.org).
 
 ## Prepare
 
-Before you setup/install/run the project, there are certain steps to ensure proper functionality.
+Before you set up/install/run the project, there are certain steps to ensure proper functionality.
 
 ### SSL/TLS
 

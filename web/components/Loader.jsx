@@ -1,5 +1,15 @@
 import React from "react";
-import { Spinner } from "@chakra-ui/react";
+import { Box, Center, Spinner } from "@chakra-ui/react";
+
+export function CenteredLoader(props) {
+  return (
+    <Box position="relative" {...props}>
+      <Center axis="both">
+        <Loader />
+      </Center>
+    </Box>
+  );
+}
 
 export function Loader() {
   return (

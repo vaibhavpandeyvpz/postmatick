@@ -1,15 +1,29 @@
 import axios from "axios";
 
+export async function download(id) {
+  return axios.get(`/images/${id}`).then(({ data }) => data);
+}
+
+export async function draw(contentType, content, prompt) {
+  return axios
+    .post("/draw", { contentType, content, prompt })
+    .then(({ data }) => data);
+}
+
+export async function idea(contentType, content) {
+  return axios.post("/idea", { contentType, content }).then(({ data }) => data);
+}
+
+export async function images(q) {
+  return axios.get("/images", { params: { q } }).then(({ data }) => data);
+}
+
 export async function logOut() {
   return axios.post("/logout").then(({ data }) => data);
 }
 
-export async function references(q) {
-  return axios.get("/references", { params: { q } }).then(({ data }) => data);
-}
-
-export async function post(text, media, visibility = "PUBLIC") {
-  return axios.post("/post", { text, media, visibility });
+export async function post(contentType, title, content, image) {
+  return axios.post("/post", { contentType, title, content, image });
 }
 
 export async function profile() {
@@ -20,12 +34,14 @@ export async function status() {
   return axios.get("/status").then(({ data }) => data);
 }
 
-export async function upload() {
-  return axios.post("/upload");
+export async function search(provider, q) {
+  return axios
+    .get("/search", { params: { provider, q } })
+    .then(({ data }) => data);
 }
 
-export async function write(url, imageUrl) {
+export async function write(contentType, url, prompt) {
   return axios
-    .post("/write", { url, image_url: imageUrl })
+    .post("/write", { contentType, url, prompt })
     .then(({ data }) => data);
 }

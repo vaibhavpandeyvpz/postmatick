@@ -32,6 +32,11 @@ const config = {
     cookie: "postmatick",
     expiration: 24 * 60 * 60, // 24 hours
   },
+  wordpress: {
+    endpoint: process.env.WORDPRESS_ENDPOINT,
+    username: process.env.WORDPRESS_USERNAME,
+    password: process.env.WORDPRESS_APP_PASSWORD,
+  },
 };
 
 module.exports = config;

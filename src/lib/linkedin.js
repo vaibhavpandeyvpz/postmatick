@@ -1,4 +1,9 @@
+const axios = require("axios");
+const imagemin = require("imagemin");
+const imageminJpegtran = require("imagemin-jpegtran");
+const imageminPngquant = require("imagemin-pngquant");
 const { RestliClient } = require("linkedin-api-client");
+const sharp = require("sharp");
 const config = require("../config");
 
 const client = new RestliClient();
@@ -14,7 +19,7 @@ const client = new RestliClient();
  * @param {Boolean} sharing
  * @returns {Object}
  */
-function post(
+async function post(
   accessToken,
   userId,
   text = "",
@@ -24,6 +29,39 @@ function post(
   distribute = true,
   sharing = true,
 ) {
+  if (media) {
+    const { image: uploadedMedia, uploadUrl } = await upload(
+      accessToken,
+      userId,
+    );
+    await axios
+      .get(media, {
+        decompress: false,
+        responseType: "arraybuffer",
+      })
+      .then(({ data }) =>
+        sharp(data).resize(1024, 1024, { fit: "inside" }).toBuffer(),
+      )
+      .then((resized) =>
+        imagemin.buffer(resized, {
+          plugins: [
+            imageminJpegtran(),
+            imageminPngquant({
+              quality: [0.5, 0.75],
+            }),
+          ],
+        }),
+      )
+      .then((compressed) =>
+        axios.post(uploadUrl, compressed, {
+          headers: {
+            "content-type": media.endsWith(".png") ? "image/png" : "image/jpeg",
+          },
+        }),
+      );
+    media = uploadedMedia;
+  }
+
   return client.create({
     accessToken,
     entity: {

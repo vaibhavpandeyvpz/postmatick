@@ -14,6 +14,7 @@ function search(term, page = 1) {
         formats: Object.keys(x.meta.available_formats || {}),
         preview: x.image.source.url,
         size: x.image.source.size,
+        premium: x.licenses[0].type === "premium",
       })),
     );
 }

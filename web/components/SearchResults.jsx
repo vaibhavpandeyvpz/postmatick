@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { ArrowForwardIcon, EditIcon, Search2Icon } from "@chakra-ui/icons";
+import { ArrowForwardIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   AbsoluteCenter,
   Box,
@@ -15,48 +15,47 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { Loader } from "./Loader";
 import * as api from "../utilities/api";
+import placeholder from "../images/placeholder.svg";
 
-export function SearchResultView({ result, onResultSelected }) {
+export function SearchResult({ result, onResultSelect }) {
   const goToResult = () => window.open(result.url);
 
   return (
     <Card direction={{ base: "column", sm: "row" }} variant="outline">
-      {result.image && (
-        <Image
-          objectFit="cover"
-          maxW={{ base: "100%", sm: "200px" }}
-          src={result.image || "https://placehold.co/400?text=no+image"}
-          alt={result.title}
-        />
-      )}
-      <Stack>
+      <Image
+        objectFit="cover"
+        maxW={{ base: "100%", sm: "100px" }}
+        maxH={{ base: "100%", sm: "100px" }}
+        src={result.image || placeholder}
+        alt={result.title}
+      />
+      <Stack gap={0}>
         <CardBody>
           <Stack gap={1}>
-            <Heading noOfLines={2} size="md">
+            <Heading noOfLines={2} size="md" textAlign="start">
               {result.title}
             </Heading>
-            <Text noOfLines={3}>{result.description}</Text>
+            <Text noOfLines={3} textAlign="start">
+              {result.description}
+            </Text>
+            <Text color="gray.400" noOfLines={1} textAlign="start">
+              {result.url}
+            </Text>
           </Stack>
         </CardBody>
-        <CardFooter>
-          <Stack direction="row" gap={1}>
-            {onResultSelected && (
+        <CardFooter pt={0}>
+          <Stack direction="row" gap={2}>
+            {onResultSelect && (
               <Button
                 colorScheme="blue"
-                leftIcon={<EditIcon />}
-                onClick={() => onResultSelected(result)}
+                rightIcon={<ArrowForwardIcon />}
+                onClick={() => onResultSelect(result)}
               >
-                Create post
+                Continue
               </Button>
             )}
-            <Button
-              colorScheme="blue"
-              onClick={goToResult}
-              rightIcon={<ArrowForwardIcon />}
-              variant="outline"
-            >
+            <Button colorScheme="blue" onClick={goToResult} variant="ghost">
               Read more
             </Button>
           </Stack>
@@ -66,12 +65,16 @@ export function SearchResultView({ result, onResultSelected }) {
   );
 }
 
-export function ReferencesView({ onResultSelected }) {
+export default function SearchResults({
+  provider,
+  placeholder,
+  onResultSelect,
+}) {
   const [results, setResults] = useState(null);
   const [isSearchingResults, setSearchingResults] = useState(false);
   const [query, setQuery] = useState("");
 
-  const searchReferences = useCallback(
+  const searchOnWeb = useCallback(
     (e) => {
       e.preventDefault();
       if (isSearchingResults) {
@@ -80,7 +83,7 @@ export function ReferencesView({ onResultSelected }) {
 
       setSearchingResults(true);
       api
-        .references(query)
+        .search(provider, query)
         .then(({ results }) => {
           setResults(results);
         })
@@ -93,48 +96,54 @@ export function ReferencesView({ onResultSelected }) {
 
   return (
     <Stack gap={3}>
-      <form onSubmit={searchReferences}>
+      <form onSubmit={searchOnWeb}>
         <Stack direction="row">
           <InputGroup>
             <InputLeftElement pointerEvents="none">
-              <Search2Icon color="gray.300" />
+              <SearchIcon color="gray.300" />
             </InputLeftElement>
             <Input
-              placeholder="Enter a topic e.g., artificial intelligence"
+              placeholder={placeholder}
               defaultValue={query}
               onChange={(e) => setQuery(e.target.value)}
               tabIndex={0}
               type="search"
             />
           </InputGroup>
-          {!isSearchingResults && (
-            <Button tabIndex={1} type="submit">
-              Search
-            </Button>
-          )}
+          <Button
+            isLoading={isSearchingResults}
+            loadingText="Searching…"
+            tabIndex={1}
+            type="submit"
+            variant="outline"
+          >
+            Search
+          </Button>
         </Stack>
       </form>
       {isSearchingResults ? (
-        <Box position="relative" h="250px">
+        <Box position="relative" h="100px">
           <AbsoluteCenter axis="both">
-            <Loader />
+            <Text color="gray.300" fontSize="sm">
+              Please wait while we are fetching results…
+            </Text>
           </AbsoluteCenter>
         </Box>
       ) : results?.length ? (
         <Stack maxHeight="650px" overflowY="auto">
           {results.map((x) => (
-            <SearchResultView
+            <SearchResult
               result={x}
               key={x.url}
-              onResultSelected={onResultSelected}
+              onResultSelect={onResultSelect}
             />
           ))}
         </Stack>
       ) : (
         <Box position="relative" h="100px">
           <AbsoluteCenter axis="both">
-            <Text color="GrayText" fontSize="xs">
-              No results to show.
+            <Text color="gray.300" fontSize="sm">
+              No results to show here.
             </Text>
           </AbsoluteCenter>
         </Box>
