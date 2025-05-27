@@ -40,8 +40,6 @@ export async function search(provider, q) {
     .then(({ data }) => data);
 }
 
-export async function write(contentType, url, prompt) {
-  return axios
-    .post("/write", { contentType, url, prompt })
-    .then(({ data }) => data);
+export async function write(url, prompt) {
+  return axios.post("/write", { url, prompt }).then(({ data }) => data);
 }

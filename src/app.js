@@ -157,11 +157,11 @@ app.post(
     },
   },
   async function handler(req, reply) {
-    const { access_token } = req.session.get("linkedin_access_token");
-    const userInfo = await auth.userInfo(access_token);
     const { contentType, title, content, image, visibility } = req.body;
 
     if (contentType === "LINKEDIN") {
+      const { access_token } = req.session.get("linkedin_access_token");
+      const userInfo = await auth.userInfo(access_token);
       const { createdEntityId } = await linkedin.post(
         access_token,
         userInfo.sub,
@@ -195,13 +195,12 @@ app.post(
   {
     schema: {
       body: S.object()
-        .prop("contentType", S.enum(["LINKEDIN", "WORDPRESS"]).required())
         .prop("url", S.string().format(S.FORMATS.URL).required())
         .prop("prompt", S.string()),
     },
   },
   async function handler(req, reply) {
-    const { contentType, url, prompt } = req.body;
+    const { url, prompt } = req.body;
     const article = await scraping.read(url);
     const content = await openai.complete([
       {

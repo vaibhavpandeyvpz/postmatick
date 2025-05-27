@@ -26,7 +26,7 @@ export default function ContentCreator({
 
       setGeneratingContent(true);
       api
-        .write(contentType, result.url, prompt)
+        .write(result.url, prompt)
         .then(({ content }) => {
           setGeneratedContent(content);
         })
