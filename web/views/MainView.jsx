@@ -18,7 +18,7 @@ import ContentCreator from "../components/ContentCreator";
 import ContentTypeChooser from "../components/ContentTypeChooser";
 import FinalizePost from "../components/FinalizePost";
 import PickOrCreateImage from "../components/PickOrCreateImage";
-import SearchGoogleOrNews from "../components/SearchGoogleOrNews";
+import SearchOrEnterSource from "../components/SearchOrEnterSource";
 
 const steps = [
   { title: "Type" },
@@ -93,7 +93,7 @@ export function MainView() {
           <ContentTypeChooser onContentTypeSelect={changeContentType} />
         )}
         {activeStep === 1 && (
-          <SearchGoogleOrNews onResultSelect={changeSelectedResult} />
+          <SearchOrEnterSource onResultSelect={changeSelectedResult} />
         )}
         {activeStep === 2 && (
           <ContentCreator

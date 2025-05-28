@@ -1,14 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { ArrowForwardIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
+import { SearchIcon } from "@chakra-ui/icons";
 import {
   AbsoluteCenter,
   Badge,
   Box,
   Button,
-  Card,
-  CardBody,
-  CardFooter,
-  Heading,
   Image,
   Input,
   InputGroup,

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { ArrowForwardIcon, EditIcon, SearchIcon } from "@chakra-ui/icons";
+import { ArrowForwardIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   AbsoluteCenter,
   Box,
